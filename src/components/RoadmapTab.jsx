@@ -248,7 +248,7 @@ const RoadmapTab = () => {
                             <h2 className="text-3xl font-bold text-gray-800">AI 맞춤 학습 로드맵</h2>
                             {userProfile && (
                                 <span className="px-4 py-2 bg-gradient-to-r from-[#FCC5C3] to-[#FBBAB7] text-white rounded-full text-sm font-bold shadow-md">
-                                    {userProfile.major} {userProfile.grade}학년
+                                    {userProfile.major} {userProfile.gradeL}학년
                                 </span>
                             )}
                         </div>
