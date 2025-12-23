@@ -1,12 +1,12 @@
 import React from 'react';
-import { Briefcase, BarChart3, Award, Layers } from 'lucide-react';
+import { Briefcase, BarChart3, Users, Map } from 'lucide-react';
 
 const Navigation = ({ activeTab, setActiveTab }) => {
   const tabs = [
-    { id: 'roadmap', label: '스킬 트리', icon: Layers },
-    { id: 'jobs', label: '실시간 채용', icon: Briefcase },
     { id: 'gap', label: 'Gap Analysis', icon: BarChart3 },
-    { id: 'portfolio', label: '포트폴리오', icon: Award }
+    { id: 'roadmap', label: '학습 로드맵', icon: Map },
+    { id: 'jobs', label: '실시간 채용', icon: Briefcase },
+    { id: 'community', label: '커뮤니티', icon: Users }
   ];
 
   return (
@@ -17,8 +17,8 @@ const Navigation = ({ activeTab, setActiveTab }) => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${activeTab === tab.id
-                ? 'bg-gradient-to-r from-[#FBBAB7] to-[#F49795] text-white shadow-lg shadow-[#FBBAB7]/30'
-                : 'text-gray-600 hover:bg-[#FFF5F5]'
+              ? 'bg-gradient-to-r from-[#FBBAB7] to-[#F49795] text-white shadow-lg shadow-[#FBBAB7]/30'
+              : 'text-gray-600 hover:bg-[#FFF5F5]'
               }`}
           >
             <tab.icon className="w-5 h-5" />

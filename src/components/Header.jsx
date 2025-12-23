@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, LogOut, User } from 'lucide-react';
 
-const Header = ({ targetJob = '백엔드 개발자', matchRate = 72, onLogout }) => {
+const Header = ({ targetJob = '백엔드 개발자', matchRate = 72, onLogout, onOpenMyPage }) => {
   return (
     <header className="border-b border-[#FBBAB7]/30 bg-white/90 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -27,7 +27,11 @@ const Header = ({ targetJob = '백엔드 개발자', matchRate = 72, onLogout })
               <span className="text-xl font-bold text-[#EA7274]">{matchRate}%</span>
             </div>
             <div className="flex gap-2">
-              <button className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+              <button
+                onClick={onOpenMyPage}
+                className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                title="마이페이지"
+              >
                 <User className="w-5 h-5 text-gray-600" />
               </button>
               <button

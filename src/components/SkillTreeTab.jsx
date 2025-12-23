@@ -2,7 +2,7 @@ import React from 'react';
 import SkillCard from './SkillCard';
 import CourseDetailSidebar from './CourseDetailSidebar';
 
-const SkillTreeTab = ({ skillTree, selectedCourse, setSelectedCourse }) => {
+const SkillTreeTab = ({ skillTree, selectedCourse, setSelectedCourse, onRechooseCourses }) => {
   return (
     <div className="grid grid-cols-3 gap-6">
       {/* 스킬 트리 메인 */}
@@ -32,8 +32,11 @@ const SkillTreeTab = ({ skillTree, selectedCourse, setSelectedCourse }) => {
         </div>
       </div>
 
-      {/* 상세 정보 사이드바 */}
-      <CourseDetailSidebar selectedCourse={selectedCourse} />
+      {/* 상세 정보 사이드바 - 항상 표시 */}
+      <CourseDetailSidebar
+        selectedCourse={selectedCourse}
+        onRechooseCourses={onRechooseCourses}
+      />
     </div>
   );
 };

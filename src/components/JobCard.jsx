@@ -1,6 +1,5 @@
 import React from 'react';
-import { Briefcase } from 'lucide-react';
-import { getMatchColor, formatDeadline } from '../utils/helpers';
+import { formatDeadline } from '../utils/helpers';
 
 const JobCard = ({ job }) => {
   return (
@@ -15,13 +14,6 @@ const JobCard = ({ job }) => {
             <p className="text-gray-600">{job.position}</p>
           </div>
         </div>
-        
-        <div className="text-right">
-          <div className="text-sm text-gray-500 mb-1">매칭률</div>
-          <div className={`text-3xl font-bold ${getMatchColor(job.matchRate)}`}>
-            {job.matchRate}%
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -34,11 +26,11 @@ const JobCard = ({ job }) => {
 
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <div className="text-sm">
-          <span className="text-gray-500">마감: </span>
+          <span className="text-gray-500">모집 중: </span>
           <span className="text-red-600 font-medium">{formatDeadline(job.deadline)}</span>
         </div>
         <button className="px-6 py-2 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-lg font-medium transition-all shadow-sm">
-          부족한 역량 분석하기
+          채용공고 보기
         </button>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
+import { User, Lock, ArrowRight, Sparkles } from 'lucide-react';
 
 const Login = ({ onLogin }) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -22,6 +22,15 @@ const Login = ({ onLogin }) => {
       return;
     }
 
+    // ⚠️ 개발 중 임시 로그인 - 실제 배포 시 아래 주석 해제하고 이 부분 삭제
+    console.log('임시 로그인:', { userId: formData.userId });
+    alert(`${formData.userId}님, 환영합니다! (개발용 임시 로그인)`);
+    localStorage.setItem('userName', formData.userId);
+    localStorage.setItem('studentId', formData.userId);
+    onLogin();
+    return;
+
+    /* ⬇️ 실제 배포 시 주석 해제
     try {
       if (isSignUp) {
         // 회원가입 기능은 추후 구현
@@ -65,6 +74,7 @@ const Login = ({ onLogin }) => {
       console.error('에러 메시지:', error.message);
       alert(`서버와 연결할 수 없습니다.\n\n에러: ${error.message}\n\n개발자 도구 콘솔을 확인해주세요.`);
     }
+    ⬆️ 실제 배포 시 주석 해제 */
   };
 
   return (
@@ -212,9 +222,9 @@ const Login = ({ onLogin }) => {
                     <input type="checkbox" className="w-4 h-4 accent-[#EA7274]" />
                     <span className="text-gray-600">로그인 유지</span>
                   </label>
-                  <a href="#" className="text-[#EA7274] hover:text-[#d85d5f] font-medium">
+                  <button type="button" className="text-[#EA7274] hover:text-[#d85d5f] font-medium">
                     비밀번호 찾기
-                  </a>
+                  </button>
                 </div>
               )}
 

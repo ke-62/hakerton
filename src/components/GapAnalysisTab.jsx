@@ -5,7 +5,7 @@ import { Search } from 'lucide-react';
 
 const GapAnalysisTab = ({ gapAnalysis }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showResult, setShowResult] = useState(false);
+  const [showResult, setShowResult] = useState(true); // 로그인 시 바로 결과 표시
 
   const handleStartAnalysis = () => {
     setIsAnalyzing(true);
