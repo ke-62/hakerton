@@ -12,15 +12,11 @@ const SkillTreeTab = ({ skillTree, selectedCourse, setSelectedCourse }) => {
           <div className="flex gap-2">
             <div className="flex items-center gap-2 px-4 py-2 bg-[#FBBAB7]/20 rounded-full border border-[#FBBAB7]">
               <div className="w-3 h-3 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-full"></div>
-              <span className="text-sm text-gray-700">기초</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-[#F49795]/20 rounded-full border border-[#F49795]">
-              <div className="w-3 h-3 bg-gradient-to-br from-[#F49795] to-[#EA7274] rounded-full"></div>
-              <span className="text-sm text-gray-700">개발</span>
+              <span className="text-sm text-gray-700">추천</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-[#EA7274]/20 rounded-full border border-[#EA7274]">
               <div className="w-3 h-3 bg-gradient-to-br from-[#EA7274] to-[#d85d5f] rounded-full"></div>
-              <span className="text-sm text-gray-700">심화</span>
+              <span className="text-sm text-gray-700">필수</span>
             </div>
           </div>
         </div>

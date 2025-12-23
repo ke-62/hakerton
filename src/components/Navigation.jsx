@@ -11,16 +11,15 @@ const Navigation = ({ activeTab, setActiveTab }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
-      <div className="flex gap-3 bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
+      <div className="flex gap-3 bg-white rounded-2xl p-2 shadow-sm border border-[#FBBAB7]/20">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-              activeTab === tab.id
-                ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/30'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${activeTab === tab.id
+                ? 'bg-gradient-to-r from-[#FBBAB7] to-[#F49795] text-white shadow-lg shadow-[#FBBAB7]/30'
+                : 'text-gray-600 hover:bg-[#FFF5F5]'
+              }`}
           >
             <tab.icon className="w-5 h-5" />
             {tab.label}

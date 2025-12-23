@@ -1,8 +1,7 @@
 // 카테고리별 그라데이션 색상 반환
 export const getCategoryColor = (category) => {
   const colors = {
-    foundation: 'from-[#FBBAB7] to-[#F49795]',
-    development: 'from-[#F49795] to-[#EA7274]',
+    development: 'from-[#FBBAB7] to-[#F49795]',
     advanced: 'from-[#EA7274] to-[#d85d5f]'
   };
   return colors[category] || 'from-gray-400 to-gray-600';

@@ -44,7 +44,7 @@ function App() {
     return <Login onLogin={handleLogin} />; // handleLogin 전달
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50">
+    <div className="min-h-screen bg-[#FFF9F5]">
       {/* Header에 handleLogout 전달 */}
       <Header targetJob="백엔드 개발자" matchRate={72} onLogout={handleLogout} />
 
