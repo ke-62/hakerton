@@ -4,14 +4,67 @@ import { User, Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
 const Login = ({ onLogin }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    userId: '',
     password: '',
     name: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onLogin();
+
+    if (!formData.userId || !formData.password) {
+      alert('학번과 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    if (isSignUp && !formData.name) {
+      alert('이름을 입력해주세요.');
+      return;
+    }
+
+    try {
+      if (isSignUp) {
+        // 회원가입 기능은 추후 구현
+        alert('회원가입 기능은 준비 중입니다.');
+        return;
+      }
+
+      console.log('로그인 시도:', { userId: formData.userId });
+
+      // 로그인 API 호출
+      const response = await fetch('http://172.19.31.67:3000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // 쿠키를 받기 위해 필요
+        body: JSON.stringify({
+          userId: formData.userId,
+          password: formData.password
+        })
+      });
+
+      console.log('응답 상태:', response.status);
+      const data = await response.json();
+      console.log('응답 데이터:', data);
+
+      if (data.isSuccess) {
+        // 로그인 성공
+        alert(`${data.result.name}님, 환영합니다!`);
+        // 사용자 정보를 localStorage에 저장 (선택사항)
+        localStorage.setItem('userName', data.result.name);
+        localStorage.setItem('studentId', data.result.studentId);
+        onLogin();
+      } else {
+        // 로그인 실패
+        alert(data.message || '로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('로그인 에러 상세:', error);
+      console.error('에러 타입:', error.name);
+      console.error('에러 메시지:', error.message);
+      alert(`서버와 연결할 수 없습니다.\n\n에러: ${error.message}\n\n개발자 도구 콘솔을 확인해주세요.`);
+    }
   };
 
   return (
@@ -75,7 +128,7 @@ const Login = ({ onLogin }) => {
             </div>
 
             {/* 통계 */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-red-200">
+            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-[#FBBAB7]/30">
               <div>
                 <div className="text-3xl font-bold text-[#EA7274]">2,847</div>
                 <div className="text-sm text-gray-500 mt-1">성공한 선배들</div>
@@ -129,14 +182,14 @@ const Login = ({ onLogin }) => {
 
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Mail className="w-5 h-5" />
+                  <User className="w-5 h-5" />
                 </div>
                 <input
-                  type="email"
-                  placeholder="이메일"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent focus:border-red-500 rounded-xl outline-none transition-all"
+                  type="text"
+                  placeholder="학번"
+                  value={formData.userId}
+                  onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent focus:border-[#FBBAB7] rounded-xl outline-none transition-all"
                 />
               </div>
 
@@ -149,7 +202,7 @@ const Login = ({ onLogin }) => {
                   placeholder="비밀번호"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent focus:border-red-500 rounded-xl outline-none transition-all"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent focus:border-[#FBBAB7] rounded-xl outline-none transition-all"
                 />
               </div>
 
@@ -159,7 +212,7 @@ const Login = ({ onLogin }) => {
                     <input type="checkbox" className="w-4 h-4 accent-[#EA7274]" />
                     <span className="text-gray-600">로그인 유지</span>
                   </label>
-                  <a href="#" className="text-red-500 hover:text-red-600 font-medium">
+                  <a href="#" className="text-[#EA7274] hover:text-[#d85d5f] font-medium">
                     비밀번호 찾기
                   </a>
                 </div>
@@ -193,7 +246,7 @@ const Login = ({ onLogin }) => {
             <p>© 2024 살아있는 진로 로드맵. All rights reserved.</p>
           </div>
         </div>
-      </div>
+      </div >
 
       <style jsx>{`
         @keyframes blob {
@@ -212,7 +265,7 @@ const Login = ({ onLogin }) => {
           animation-delay: 4s;
         }
       `}</style>
-    </div>
+    </div >
   );
 };
 
