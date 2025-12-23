@@ -94,6 +94,9 @@ const JobSelectorModal = ({ onClose, onSelectJob }) => {
             console.log('저장 응답 데이터:', data);
 
             if (data.isSuccess) {
+                // 직업 변경 시간 기록 (JobsTab에서 감지용)
+                localStorage.setItem('lastJobUpdateTime', Date.now().toString());
+                console.log('✅ 직업 변경 시간 기록:', Date.now());
                 onSelectJob(job.jobNm);
                 onClose();
             } else {

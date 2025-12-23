@@ -22,7 +22,11 @@ function App() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showMyPage, setShowMyPage] = useState(false);
   const [showJobSelector, setShowJobSelector] = useState(false);
-  const [userCourses, setUserCourses] = useState([]);
+  const [userCourses, setUserCourses] = useState(() => {
+    // localStorage에서 userCourses 불러오기
+    const saved = localStorage.getItem('userCourses');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [targetJob, setTargetJob] = useState(() => {
     return localStorage.getItem('targetJob') || '미정';
   });
@@ -33,6 +37,14 @@ function App() {
       localStorage.setItem('targetJob', targetJob);
     }
   }, [activeTab, targetJob, isLoggedIn]);
+
+  // userCourses 변경 시 localStorage에 저장
+  useEffect(() => {
+    if (isLoggedIn && userCourses) {
+      localStorage.setItem('userCourses', JSON.stringify(userCourses));
+      console.log('💾 userCourses 저장됨:', userCourses.length + '개');
+    }
+  }, [userCourses, isLoggedIn]);
 
   // 3. 로그인 처리 함수
   const handleLogin = () => {
@@ -50,6 +62,7 @@ function App() {
     localStorage.removeItem('jwtToken'); // JWT 토큰 삭제
     localStorage.removeItem('userName');
     localStorage.removeItem('studentId');
+    localStorage.removeItem('userCourses'); // 선택 과목 삭제
     setActiveTab('gap');
     setTargetJob('미정');
     setUserCourses([]); // 로그아웃 시 선택 과목 초기화
@@ -120,7 +133,11 @@ function App() {
               </button>
             </div>
           ) : (
-            <GapAnalysisTab gapAnalysis={gapAnalysis} targetJob={targetJob} />
+            <GapAnalysisTab 
+              key={JSON.stringify(userCourses)} 
+              gapAnalysis={gapAnalysis} 
+              targetJob={targetJob} 
+            />
           )
         )}
 

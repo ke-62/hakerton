@@ -80,6 +80,16 @@ const Login = ({ onLogin }) => {
         localStorage.setItem('userName', data.result.name);
         localStorage.setItem('studentId', data.result.studentId);
         
+        // 백엔드에서 학과와 학년 정보도 저장
+        if (data.result.major) {
+          localStorage.setItem('userMajor', data.result.major);
+          console.log('✅ 학과 저장:', data.result.major);
+        }
+        if (data.result.gradeLevel) {
+          localStorage.setItem('userGrade', data.result.gradeLevel);
+          console.log('✅ 학년 저장:', data.result.gradeLevel);
+        }
+        
         alert(`${data.result.name}님, 환영합니다!`);
         onLogin();
       } else {

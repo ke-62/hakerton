@@ -1,71 +1,14 @@
-import React, { useState } from 'react';
-import { MessageSquare, Heart, User, Plus, Calendar, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageSquare, Heart, User, Plus, Calendar, TrendingUp, X, Send, ThumbsUp, ArrowLeft } from 'lucide-react';
 
 const CommunityTab = () => {
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      author: '김개발',
-      major: '컴퓨터공학과 3학년',
-      title: '방탈출 예약 시스템 프로젝트 진행했어요!',
-      content: 'Spring Boot로 RESTful API 구현하고 JPA로 DB 연동했습니다. 예약 관리 로직이 생각보다 복잡했는데, 시간표 충돌 체크하는 부분이 재미있었어요. 다들 실무에서는 어떻게 처리하시나요?',
-      course: '웹 프로그래밍',
-      likes: 24,
-      comments: 5,
-      createdAt: '2024-12-20',
-      tags: ['Spring Boot', 'JPA', 'MySQL']
-    },
-    {
-      id: 2,
-      author: '이코딩',
-      major: 'AI융합학과 2학년',
-      title: '코딩테스트 준비 꿀팁 공유합니다',
-      content: '백준 단계별로 풀기 추천드려요! 저는 알고리즘 수업 들으면서 하루에 1-2문제씩 풀었더니 실력이 많이 늘었습니다. 특히 DP 파트가 어려웠는데 반복해서 푸니까 감이 잡혔어요.',
-      course: '알고리즘',
-      likes: 42,
-      comments: 12,
-      createdAt: '2024-12-19',
-      tags: ['코딩테스트', '알고리즘', '백준']
-    },
-    {
-      id: 3,
-      author: '박서버',
-      major: '소프트웨어학과 4학년',
-      title: '네이버 인턴 합격 후기 (백엔드)',
-      content: '데이터베이스 수업 열심히 들었던 게 면접에서 엄청 도움 됐어요. 정규화, 인덱스, 트랜잭션 같은 개념들 확실히 알아두시면 좋습니다. 코딩테스트는 알고리즘 수업 범위 내에서 나왔어요!',
-      course: '데이터베이스',
-      likes: 89,
-      comments: 23,
-      createdAt: '2024-12-18',
-      tags: ['취업', '인턴', '네이버', '면접']
-    },
-    {
-      id: 4,
-      author: '최개발자',
-      major: '컴퓨터공학과 2학년',
-      title: '운영체제 과목 꼭 들으세요!',
-      content: '처음엔 이론만 배우는 줄 알았는데, 프로세스 스케줄링이나 메모리 관리 같은 개념이 실무에서 진짜 중요하더라고요. 특히 멀티스레딩 부분은 면접 단골 질문이에요.',
-      course: '운영체제',
-      likes: 31,
-      comments: 8,
-      createdAt: '2024-12-17',
-      tags: ['운영체제', '면접', '추천과목']
-    },
-    {
-      id: 5,
-      author: '정프론트',
-      major: 'AI융합학과 3학년',
-      title: '머신러닝 프로젝트 팀원 구해요',
-      content: '이번 학기 머신러닝 수업 프로젝트로 추천 시스템 만들려고 하는데 같이 하실 분 계신가요? Python, TensorFlow 사용 예정입니다. 관심 있으신 분은 댓글 주세요!',
-      course: '머신러닝',
-      likes: 15,
-      comments: 7,
-      createdAt: '2024-12-16',
-      tags: ['팀원모집', 'ML', '프로젝트']
-    }
-  ]);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'detail'
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [showWriteForm, setShowWriteForm] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [newComment, setNewComment] = useState('');
   const [newPost, setNewPost] = useState({
     title: '',
     content: '',
@@ -73,39 +16,454 @@ const CommunityTab = () => {
     tags: ''
   });
 
+  // 브라우저 히스토리 연동 (스와이프 뒤로가기 지원)
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (viewMode === 'detail') {
+        e.preventDefault();
+        setViewMode('list');
+        setSelectedPost(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [viewMode]);
+
+  // 게시글 목록 불러오기
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('jwtToken');
+        
+        if (!token) {
+          console.error('토큰이 없습니다.');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch('http://172.16.72.219:3000/community/posts', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('게시글 목록을 불러오지 못했습니다.');
+        }
+
+        const data = await response.json();
+        
+        // 백엔드 응답 구조 확인
+        console.log('백엔드 응답:', data);
+        
+        // result.posts 형태인지 확인
+        let postsArray = [];
+        if (data.isSuccess && data.result) {
+          postsArray = data.result.posts || data.result;
+        } else if (Array.isArray(data)) {
+          postsArray = data;
+        }
+        
+        // 날짜 포맷 함수
+        const formatDate = (dateString) => {
+          try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '24/12/24';
+            const year = String(date.getFullYear()).slice(-2);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+          } catch {
+            return '24/12/24';
+          }
+        };
+        
+        // 백엔드 데이터를 프론트엔드 형식으로 변환
+        const formattedPosts = postsArray.map(post => ({
+          id: post.id,
+          author: post.author?.name || '익명',
+          major: (post.author?.major && post.author?.grade) 
+            ? `${post.author.major} ${post.author.grade}학년` 
+            : '',
+          title: post.title,
+          content: post.content,
+          course: post.course || '기타',
+          likes: post.likes || 0,
+          comments: post.comments?.length || 0,
+          createdAt: formatDate(post.createdAt),
+          tags: post.hashtags || [],
+          commentList: (post.comments || []).map(comment => ({
+            id: comment.id,
+            author: comment.author?.name || '익명',
+            content: comment.content,
+            createdAt: formatDate(comment.createdAt),
+            likes: comment.likes || 0
+          }))
+        }));
+
+        setPosts(formattedPosts);
+      } catch (error) {
+        console.error('게시글 목록 불러오기 오류:', error);
+        alert('게시글 목록을 불러오지 못했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  // 상세 페이지로 이동 시 히스토리 추가
+  const goToDetail = (post) => {
+    setSelectedPost(post);
+    setViewMode('detail');
+    window.history.pushState({ view: 'detail', postId: post.id }, '', `#post-${post.id}`);
+  };
+
+  // 목록으로 돌아가기
+  const goToList = () => {
+    setViewMode('list');
+    setSelectedPost(null);
+    window.history.pushState({ view: 'list' }, '', '#community');
+  };
+
   const handleLike = (postId) => {
     setPosts(posts.map(post =>
       post.id === postId
         ? { ...post, likes: post.likes + 1 }
         : post
     ));
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost({ ...selectedPost, likes: selectedPost.likes + 1 });
+    }
   };
 
-  const handleSubmit = () => {
+  const handleCommentLike = (commentId) => {
+    if (!selectedPost) return;
+    
+    const updatedComments = selectedPost.commentList.map(comment =>
+      comment.id === commentId
+        ? { ...comment, likes: comment.likes + 1 }
+        : comment
+    );
+    
+    const updatedPost = { ...selectedPost, commentList: updatedComments };
+    setSelectedPost(updatedPost);
+    
+    setPosts(posts.map(post =>
+      post.id === selectedPost.id ? updatedPost : post
+    ));
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) {
+      alert('댓글 내용을 입력해주세요.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('jwtToken');
+      
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      const response = await fetch(`http://172.16.72.219:3000/community/posts/${selectedPost.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: newComment
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('댓글 작성 실패:', response.status, errorData);
+        throw new Error(errorData.message || '댓글 작성에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      console.log('댓글 작성 성공:', data);
+
+      // 백엔드 응답에서 댓글 데이터 추출
+      const commentData = data.result;
+      
+      // 날짜 포맷 (YY/MM/DD)
+      const formatDate = (dateString) => {
+        try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return '24/12/24';
+          const year = String(date.getFullYear()).slice(-2);
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}/${month}/${day}`;
+        } catch {
+          return '24/12/24';
+        }
+      };
+
+      const newCommentData = {
+        id: commentData.id,
+        author: commentData.author?.name || '익명',
+        content: commentData.content,
+        createdAt: formatDate(commentData.createdAt),
+        likes: commentData.likes || 0
+      };
+
+      const updatedPost = {
+        ...selectedPost,
+        commentList: [...(selectedPost.commentList || []), newCommentData],
+        comments: (selectedPost.comments || 0) + 1
+      };
+
+      setSelectedPost(updatedPost);
+      setPosts(posts.map(post =>
+        post.id === selectedPost.id ? updatedPost : post
+      ));
+      setNewComment('');
+    } catch (error) {
+      console.error('댓글 작성 오류:', error);
+      alert('댓글 작성에 실패했습니다.');
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!newPost.title || !newPost.content) {
       alert('제목과 내용을 입력해주세요.');
       return;
     }
 
-    const post = {
-      id: posts.length + 1,
-      author: '나',
-      major: '학과 정보 없음',
-      title: newPost.title,
-      content: newPost.content,
-      course: newPost.course || '기타',
-      likes: 0,
-      comments: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-      tags: newPost.tags.split(',').map(t => t.trim()).filter(Boolean)
-    };
+    try {
+      const token = localStorage.getItem('jwtToken');
+      const userName = localStorage.getItem('userName') || '익명';
+      const studentId = localStorage.getItem('studentId') || '';
+      
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
 
-    setPosts([post, ...posts]);
-    setNewPost({ title: '', content: '', course: '', tags: '' });
-    setShowWriteForm(false);
-    alert('게시글이 등록되었습니다!');
+      // 백엔드 API 호출
+      const requestBody = {
+        title: newPost.title,
+        content: newPost.content,
+        hashtags: newPost.tags.split(',').map(t => t.trim()).filter(Boolean)
+      };
+      
+      console.log('게시글 작성 요청:', requestBody);
+      
+      const response = await fetch('http://172.16.72.219:3000/community/posts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('게시글 작성 실패:', response.status, errorData);
+        throw new Error(errorData.message || '게시글 작성에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      
+      // 백엔드에서 받은 학과와 학년 정보 우선 사용
+      const backendMajor = localStorage.getItem('userMajor');
+      const backendGrade = localStorage.getItem('userGrade');
+      
+      let majorInfo = '학과 정보 없음';
+      
+      // 백엔드 데이터가 있으면 우선 사용
+      if (backendMajor && backendGrade) {
+        majorInfo = `${backendMajor} ${backendGrade}학년`;
+      }
+
+      // 새 게시글을 목록에 추가
+      const newPostData = {
+        id: data.id,
+        author: userName,
+        major: majorInfo,
+        title: data.title,
+        content: data.content,
+        course: newPost.course || '기타',
+        likes: data.likes || 0,
+        comments: data.comments?.length || 0,
+        createdAt: (() => {
+          try {
+            const date = new Date(data.createdAt);
+            if (isNaN(date.getTime())) {
+              // Invalid Date일 경우 현재 날짜 사용
+              const now = new Date();
+              const year = String(now.getFullYear()).slice(-2);
+              const month = String(now.getMonth() + 1).padStart(2, '0');
+              const day = String(now.getDate()).padStart(2, '0');
+              return `${year}/${month}/${day}`;
+            }
+            const year = String(date.getFullYear()).slice(-2);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+          } catch {
+            const now = new Date();
+            const year = String(now.getFullYear()).slice(-2);
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+          }
+        })(),
+        tags: data.hashtags || [],
+        commentList: data.comments || []
+      };
+
+      setPosts([newPostData, ...posts]);
+      setNewPost({ title: '', content: '', course: '', tags: '' });
+      setShowWriteForm(false);
+      alert('게시글이 등록되었습니다!');
+    } catch (error) {
+      console.error('게시글 작성 오류:', error);
+      alert('게시글 작성에 실패했습니다.');
+    }
   };
 
+  // 게시글 상세 보기
+  if (viewMode === 'detail' && selectedPost) {
+    return (
+      <div className="space-y-6">
+        {/* 뒤로가기 헤더 */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+          <button
+            onClick={goToList}
+            className="flex items-center gap-2 text-gray-600 hover:text-[#EA7274] transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">목록으로 돌아가기</span>
+          </button>
+        </div>
+
+        {/* 게시글 상세 */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+          {/* 작성자 정보 */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-full flex items-center justify-center">
+              <User className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <div className="font-bold text-gray-800 text-lg">{selectedPost.author}</div>
+              <div className="text-sm text-gray-500">{selectedPost.major}</div>
+            </div>
+            <div className="ml-auto flex items-center gap-2 text-sm text-gray-500">
+              <Calendar className="w-4 h-4" />
+              {selectedPost.createdAt}
+            </div>
+          </div>
+
+          {/* 과목 태그 */}
+          <div className="mb-4">
+            <span className="inline-block px-4 py-2 bg-[#FFF5F5] border border-[#FBBAB7] rounded-full text-sm font-bold text-[#EA7274]">
+              {selectedPost.course}
+            </span>
+          </div>
+
+          {/* 제목과 내용 */}
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">{selectedPost.title}</h2>
+          <p className="text-gray-700 mb-6 leading-relaxed text-lg whitespace-pre-wrap">{selectedPost.content}</p>
+
+          {/* 태그 */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {selectedPost.tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          {/* 좋아요 버튼 */}
+          <div className="flex items-center gap-4 py-6 border-y border-gray-200 mb-6">
+            <button
+              onClick={() => handleLike(selectedPost.id)}
+              className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-[#FFF5F5] to-[#FFE8E8] hover:from-[#FBBAB7] hover:to-[#F49795] rounded-xl transition-all group border border-[#FBBAB7]"
+            >
+              <Heart className="w-5 h-5 text-[#EA7274] group-hover:text-white group-hover:fill-white transition-all" />
+              <span className="font-bold text-[#EA7274] group-hover:text-white transition-all">좋아요 {selectedPost.likes}</span>
+            </button>
+            <div className="flex items-center gap-2 text-gray-600">
+              <MessageSquare className="w-5 h-5" />
+              <span className="font-medium">댓글 {selectedPost.commentList?.length || 0}</span>
+            </div>
+          </div>
+
+          {/* 댓글 목록 */}
+          <div className="space-y-4 mb-6">
+            <h4 className="text-xl font-bold text-gray-800 mb-4">댓글</h4>
+            {selectedPost.commentList && selectedPost.commentList.length > 0 ? (
+              selectedPost.commentList.map(comment => (
+                <div key={comment.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-gray-800">{comment.author}</span>
+                        <span className="text-xs text-gray-500">{comment.createdAt}</span>
+                      </div>
+                      <p className="text-gray-700 mb-2">{comment.content}</p>
+                      <button
+                        onClick={() => handleCommentLike(comment.id)}
+                        className="flex items-center gap-1 text-sm text-gray-600 hover:text-[#EA7274] transition-colors"
+                      >
+                        <ThumbsUp className="w-4 h-4" />
+                        <span>{comment.likes}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                첫 댓글을 작성해보세요!
+              </div>
+            )}
+          </div>
+
+          {/* 댓글 작성 */}
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="댓글을 입력하세요..."
+              rows="3"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#FBBAB7] focus:ring-2 focus:ring-[#FBBAB7]/20 outline-none transition-all resize-none mb-3"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleAddComment}
+                className="px-6 py-2 bg-gradient-to-r from-[#FBBAB7] to-[#F49795] hover:from-[#F49795] hover:to-[#EA7274] text-white rounded-lg font-bold shadow-lg transition-all flex items-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                댓글 작성
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 게시글 목록
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -225,68 +583,87 @@ const CommunityTab = () => {
         </div>
       )}
 
-      {/* 게시글 목록 */}
-      <div className="space-y-4">
-        {posts.map(post => (
-          <div
-            key={post.id}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-all"
-          >
-            {/* 작성자 정보 */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
+      {/* 로딩 상태 */}
+      {loading ? (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-12 text-center">
+          <div className="w-16 h-16 border-4 border-[#FBBAB7] border-t-[#EA7274] rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">게시글을 불러오는 중입니다...</p>
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-12 text-center">
+          <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-600 mb-2">아직 작성된 게시글이 없습니다</p>
+          <p className="text-sm text-gray-500">첫 번째 게시글을 작성해보세요!</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {posts.map(post => (
+            <div
+              key={post.id}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-all"
+            >
+              {/* 작성자 정보 */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="font-medium text-gray-800">{post.author}</div>
+                </div>
+                <div className="ml-auto flex items-center gap-2 text-sm text-gray-500">
+                  <Calendar className="w-4 h-4" />
+                  {post.createdAt}
+                </div>
               </div>
-              <div>
-                <div className="font-medium text-gray-800">{post.author}</div>
-                <div className="text-xs text-gray-500">{post.major}</div>
-              </div>
-              <div className="ml-auto flex items-center gap-2 text-sm text-gray-500">
-                <Calendar className="w-4 h-4" />
-                {post.createdAt}
-              </div>
-            </div>
 
-            {/* 과목 태그 */}
-            <div className="mb-3">
-              <span className="inline-block px-3 py-1 bg-[#FFF5F5] border border-[#FBBAB7] rounded-full text-sm font-medium text-[#EA7274]">
-                {post.course}
-              </span>
-            </div>
-
-            {/* 제목과 내용 */}
-            <h3 className="text-lg font-bold text-gray-800 mb-2">{post.title}</h3>
-            <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
-
-            {/* 태그 */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {post.tags.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs"
-                >
-                  #{tag}
+              {/* 과목 태그 */}
+              <div className="mb-3">
+                <span className="inline-block px-3 py-1 bg-[#FFF5F5] border border-[#FBBAB7] rounded-full text-sm font-medium text-[#EA7274]">
+                  {post.course}
                 </span>
-              ))}
-            </div>
+              </div>
 
-            {/* 좋아요와 댓글 */}
-            <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => handleLike(post.id)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-[#FFF5F5] rounded-lg transition-all group"
+              {/* 제목과 내용 */}
+              <h3 className="text-lg font-bold text-gray-800 mb-2 cursor-pointer hover:text-[#EA7274] transition-colors"
+                  onClick={() => goToDetail(post)}
               >
-                <Heart className="w-4 h-4 text-gray-600 group-hover:text-[#EA7274] group-hover:fill-[#EA7274] transition-all" />
-                <span className="text-sm font-medium text-gray-700">{post.likes}</span>
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-[#FFF5F5] rounded-lg transition-all">
-                <MessageSquare className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">{post.comments}</span>
-              </button>
+                {post.title}
+              </h3>
+              <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
+
+              {/* 태그 */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {post.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* 좋아요와 댓글 */}
+              <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-[#FFF5F5] rounded-lg transition-all group"
+                >
+                  <Heart className="w-4 h-4 text-gray-600 group-hover:text-[#EA7274] group-hover:fill-[#EA7274] transition-all" />
+                  <span className="text-sm font-medium text-gray-700">{post.likes}</span>
+                </button>
+                <button 
+                  onClick={() => goToDetail(post)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-[#FFF5F5] rounded-lg transition-all"
+                >
+                  <MessageSquare className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">{post.comments}</span>
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

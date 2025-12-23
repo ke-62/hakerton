@@ -80,6 +80,50 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
   const [jobDetail, setJobDetail] = useState(null);
   const [isLoadingJobDetail, setIsLoadingJobDetail] = useState(false);
   const [jobDetailError, setJobDetailError] = useState(null);
+  const [dynamicGapAnalysis, setDynamicGapAnalysis] = useState(gapAnalysis);
+  const [essentialCapabilities, setEssentialCapabilities] = useState(null);
+  const [isLoadingCapabilities, setIsLoadingCapabilities] = useState(false);
+  const [currentCapabilities, setCurrentCapabilities] = useState([]);
+  const [isLoadingCurrentCaps, setIsLoadingCurrentCaps] = useState(false);
+
+  // 현재 역량 데이터 가져오기
+  useEffect(() => {
+    const fetchCurrentCapabilities = async () => {
+      try {
+        setIsLoadingCurrentCaps(true);
+        const token = localStorage.getItem('jwtToken');
+        
+        if (!token) {
+          setIsLoadingCurrentCaps(false);
+          return;
+        }
+
+        const response = await fetch(
+          'http://172.16.72.219:3000/users/profile/my-capability-values',
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.isSuccess && data.result?.capabilityValues) {
+            setCurrentCapabilities(data.result.capabilityValues);
+          }
+        }
+      } catch (error) {
+        console.error('현재 역량 조회 실패:', error);
+      } finally {
+        setIsLoadingCurrentCaps(false);
+      }
+    };
+
+    fetchCurrentCapabilities();
+  }, []);
 
   // Fetch job details from backend
   useEffect(() => {
@@ -96,7 +140,6 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
         const token = localStorage.getItem('jwtToken');
         
         if (!token) {
-          console.log('토큰이 없습니다. 로그인이 필요합니다.');
           setJobDetail(null);
           setIsLoadingJobDetail(false);
           return;
@@ -119,13 +162,22 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
         }
 
         const data = await response.json();
-        console.log('백엔드 응답 데이터 전체:', data);
-        console.log('jobDetail 구조:', data.result?.jobDetail);
 
         if (data.isSuccess && data.result && data.result.jobDetail) {
-          console.log('jobDetail 설정 전:', data.result.jobDetail);
-          setJobDetail(data.result.jobDetail);
-          console.log('jobDetail 설정 완료');
+          // details가 문자열이면 파싱 시도
+          let processedJobDetail = data.result.jobDetail;
+          if (typeof processedJobDetail.details === 'string') {
+            try {
+              processedJobDetail = {
+                ...processedJobDetail,
+                details: JSON.parse(processedJobDetail.details)
+              };
+            } catch (e) {
+              console.error('JSON 파싱 실패:', e);
+            }
+          }
+          
+          setJobDetail(processedJobDetail);
         } else {
           throw new Error(data.message || '직업 상세 정보를 불러오는데 실패했습니다.');
         }
@@ -145,21 +197,216 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
     fetchJobDetail();
   }, [targetJob]);
 
+  // AI 서버로 필수역량 6개 추출
+  useEffect(() => {
+    const fetchEssentialCapabilities = async () => {
+      if (!targetJob || targetJob === '미정') {
+        setEssentialCapabilities(null);
+        setIsLoadingCapabilities(false);
+        return;
+      }
+
+      try {
+        setIsLoadingCapabilities(true);
+        const token = localStorage.getItem('jwtToken');
+        
+        if (!token) {
+          setIsLoadingCapabilities(false);
+          return;
+        }
+        const response = await fetch(
+          'http://172.16.72.219:3000/users/profile/desired-job/extract-essential-capabilities',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`필수역량 추출 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.isSuccess && data.result) {
+          
+          // AI 추출 결과 찾기 - 다양한 필드명 체크
+          const extractedCaps = data.result.essentialCapabilities || 
+                                data.result.essential_competencies ||  // AI 서버 응답 형식
+                                data.result.aiExtractedCapabilities || 
+                                data.result.capabilities ||
+                                data.result.extractedCapabilities;
+          
+          if (extractedCaps && Array.isArray(extractedCaps)) {
+            // AI 서버 형식 변환: { name, score } → { jobAblNm, jobAblStatus, jobAblCont }
+            const formattedCaps = extractedCaps.map(cap => {
+              if (cap.name && cap.score !== undefined) {
+                // AI 서버 형식
+                return {
+                  jobAblNm: cap.name,
+                  jobAblStatus: String(Math.round(cap.score)),
+                  jobAblCont: cap.description || cap.name
+                };
+              }
+              // 이미 올바른 형식이면 그대로 반환
+              return cap;
+            });
+            
+            setEssentialCapabilities(formattedCaps);
+          } else {
+            setEssentialCapabilities(null);
+          }
+        } else {
+          throw new Error(data.message || '필수역량 추출 실패');
+        }
+      } catch (error) {
+        setEssentialCapabilities(null);
+      } finally {
+        setIsLoadingCapabilities(false);
+      }
+    };
+
+    fetchEssentialCapabilities();
+  }, [targetJob]);
+
+  // essentialCapabilities 변경 시 gapAnalysis 업데이트
+  useEffect(() => {
+    if (essentialCapabilities && Array.isArray(essentialCapabilities) && essentialCapabilities.length >= 1) {
+      // AI가 추출한 역량을 labels로 사용
+      const labels = essentialCapabilities.slice(0, 6).map((cap) => {
+        return cap.name || cap.capability || cap.title || cap.jobAblNm || cap.knwldgNm || cap;
+      });
+      
+      const targetScores = essentialCapabilities.slice(0, 6).map((cap) => {
+        const score = cap.score || cap.importance || cap.weight || 
+                      parseInt(cap.jobAblStatus) || parseInt(cap.knwldgStatus) || 90;
+        return score;
+      });
+      
+      // 현재 역량 점수 매핑 (백엔드 데이터 기반)
+      const currentScores = labels.map(label => {
+        // 현재 역량에서 해당 라벨과 매칭되는 역량 찾기
+        const matchingCap = currentCapabilities.find(cap => {
+          const capName = cap.capabilityName.toLowerCase();
+          const labelLower = label.toLowerCase();
+          
+          // 정확히 일치하거나 포함 관계 확인
+          return capName === labelLower || 
+                 capName.includes(labelLower) || 
+                 labelLower.includes(capName);
+        });
+        
+        if (matchingCap) {
+          // value를 100점 만점으로 변환
+          return Math.round(matchingCap.value * 100);
+        }
+        
+        // ⚠️ 매칭되는 역량이 없으면 1점 처리 (이수한 과목 없음)
+        return 1;
+      });
+      
+      // 6개 미만이면 패딩
+      while (labels.length < 6) {
+        labels.push('기타역량');
+        targetScores.push(75);
+        currentScores.push(1);
+      }
+      
+      const updatedGapAnalysis = {
+        current: currentScores, // 백엔드에서 가져온 실제 역량 점수 (매칭 안되면 0)
+        target: targetScores, // AI가 제공한 중요도 점수
+        labels: labels // AI가 추출한 역량명
+      };
+      
+      setDynamicGapAnalysis(updatedGapAnalysis);
+    } else {
+      // AI 추출 데이터가 없으면 기본 gapAnalysis 사용
+      setDynamicGapAnalysis(gapAnalysis);
+    }
+  }, [essentialCapabilities, gapAnalysis, currentCapabilities]);
+
   // Helper function to get job info from fetched data or fallback
   const getJobInfoDisplay = () => {
     if (jobDetail && jobDetail.details) {
       const details = jobDetail.details;
       
-      return {
-        summary: details['요약']?.jobSum || '',
-        tasks: details['하는일']?.execJob || '',
-        education: details['교육자격훈련']?.technKnow || '',
-        outlook: details['임금직업만족도전망']?.jobProspect || '',
-        skills: details['능력지식환경']?.jobSum || '',
-        personality: details['성격흥미가치관']?.jobSum || '',
-        activities: details['업무활동']?.execJob || ''
+      // Helper: details의 값이 객체면 특정 필드, 문자열이면 그대로 반환
+      const getValue = (key, fieldName) => {
+        const data = details[key];
+        if (!data) return '';
+        
+        // 문자열이면 그대로 반환
+        if (typeof data === 'string') {
+          return data;
+        }
+        
+        // 객체면 특정 필드 반환
+        if (typeof data === 'object') {
+          // 단순 필드가 있으면 반환
+          if (data[fieldName]) {
+            return data[fieldName];
+          }
+          
+          // 배열 데이터를 텍스트로 변환
+          return '상세 정보는 백엔드 데이터를 참조하세요.';
+        }
+        
+        return '';
       };
+      
+      // 능력지식환경 객체 파싱
+      const parseSkills = (data) => {
+        if (typeof data === 'string') return data;
+        if (typeof data === 'object' && data.jobAbil) {
+          const items = data.jobAbil.map(item => 
+            `• ${item.jobAblNm}: ${item.jobAblCont}`
+          ).join('\n');
+          return items || '정보 없음';
+        }
+        return '';
+      };
+      
+      // 성격흥미가치관 객체 파싱
+      const parsePersonality = (data) => {
+        if (typeof data === 'string') return data;
+        if (typeof data === 'object' && data.jobChr) {
+          const items = data.jobChr.map(item => 
+            `• ${item.jobChrNm}: ${item.jobChrCont}`
+          ).join('\n');
+          return items || '정보 없음';
+        }
+        return '';
+      };
+      
+      // 업무활동 객체 파싱
+      const parseActivities = (data) => {
+        if (typeof data === 'string') return data;
+        if (typeof data === 'object' && data.jobActvImprtnc) {
+          const items = data.jobActvImprtnc.map(item => 
+            `• ${item.jobActvImprtncNm}: ${item.jobActvImprtncCont}`
+          ).join('\n');
+          return items || '정보 없음';
+        }
+        return '';
+      };
+      
+      const result = {
+        summary: getValue('요약', 'jobSum'),
+        tasks: getValue('하는일', 'execJob'),
+        education: getValue('교육자격훈련', 'technKnow'),
+        outlook: getValue('임금직업만족도전망', 'jobProspect'),
+        skills: parseSkills(details['능력지식환경']),
+        personality: parsePersonality(details['성격흥미가치관']),
+        activities: parseActivities(details['업무활동'])
+      };
+      
+      return result;
     }
+    
     // Fallback to hardcoded data
     return getJobInfo(targetJob);
   };
@@ -223,7 +470,15 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
 
         
         <div className="mt-10">
-          <RadarChart gapAnalysis={gapAnalysis} />
+          {isLoadingCapabilities ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 border-4 border-[#FBBAB7] border-t-[#EA7274] rounded-full animate-spin mb-4"></div>
+              <p className="text-lg text-gray-600 font-medium">필수 역량 분석 중...</p>
+              <p className="text-sm text-gray-500 mt-2">AI가 {targetJob}의 필수 역량을 추출하고 있습니다</p>
+            </div>
+          ) : (
+            <RadarChart gapAnalysis={dynamicGapAnalysis} />
+          )}
         </div>
 
         <div className="flex items-center justify-center gap-8 mt-6">
@@ -236,16 +491,26 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
             <span className="text-xl text-gray-700 font-semibold">목표 역량</span>
           </div>
         </div>
-
-        <div className="mt-8 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 rounded-xl p-6">
-          <h3 className="font-bold text-gray-800 mb-3 text-2xl">종합 분석</h3>
-          <p className="text-xl text-gray-700 leading-relaxed">
-            현재 웹개발 역량이 가장 우수하며, AI/ML 분야에서 가장 큰 성장 기회가 있습니다.
-            목표 달성을 위해 시스템설계 과목 이수를 추천합니다.
-          </p>
-        </div>
       </div>
-      <GapList gapAnalysis={gapAnalysis} />
+      
+      {/* 오른쪽 핵심 역량 리스트 - 로딩 중에는 표시 안함 */}
+      {isLoadingCapabilities ? (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 border-4 border-[#FBBAB7] border-t-[#EA7274] rounded-full animate-spin mb-4"></div>
+          <p className="text-lg text-gray-600 font-medium">핵심 역량 분석 중...</p>
+          <p className="text-sm text-gray-500 mt-2">잠시만 기다려주세요</p>
+        </div>
+      ) : essentialCapabilities && essentialCapabilities.length > 0 ? (
+        <GapList gapAnalysis={dynamicGapAnalysis} />
+      ) : (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <Search className="w-8 h-8 text-gray-400" />
+          </div>
+          <p className="text-lg text-gray-600 font-medium">역량 데이터가 없습니다</p>
+          <p className="text-sm text-gray-500 mt-2">직업을 선택하고 과목을 저장해주세요</p>
+        </div>
+      )}
 
       {/* 직업 상세 정보 모달 */}
       {showJobDetailModal && targetJob && targetJob !== '미정' && (
