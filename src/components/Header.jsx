@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sparkles, LogOut, User } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
+import logo from '../assets/Logo_transparent.png';
 
 const Header = ({ targetJob = '미정', matchRate = 72, onLogout, onOpenMyPage, onOpenJobSelector }) => {
   return (
@@ -7,12 +8,16 @@ const Header = ({ targetJob = '미정', matchRate = 72, onLogout, onOpenMyPage, 
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-2xl flex items-center justify-center shadow-lg shadow-[#FBBAB7]/30">
-              <Sparkles className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 flex items-center justify-center">
+              <img 
+                src={logo} 
+                alt="INDEX Logo" 
+                className="h-12 w-auto object-contain" 
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[#EA7274]">
-                사이트이름머라할거임?
+                INDEX
               </h1>
               <p className="text-xs text-gray-500">살아있는 진로 로드맵</p>
             </div>
@@ -31,9 +36,6 @@ const Header = ({ targetJob = '미정', matchRate = 72, onLogout, onOpenMyPage, 
                 </svg>
               </p>
             </button>
-            <div className="w-16 h-16 bg-gradient-to-br from-[#FFF5F5] to-[#FFE8E8] rounded-2xl border-2 border-[#FBBAB7] flex items-center justify-center shadow-sm">
-              <span className="text-xl font-bold text-[#EA7274]">{matchRate}%</span>
-            </div>
             <div className="flex gap-2">
               <button
                 onClick={onOpenMyPage}

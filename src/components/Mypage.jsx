@@ -71,7 +71,7 @@ const MyPage = ({ onClose, userCourses, setUserCourses, allSkillTree, selectedCo
 
         // 백엔드 호출은 비동기로 (실패해도 로컬 저장은 유지)
         try {
-            const response = await fetch('http://172.19.31.67:3000/api/user/courses', {
+            const response = await fetch('http://172.16.72.219:3000/api/user/courses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

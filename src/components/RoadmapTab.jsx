@@ -105,12 +105,6 @@ const RoadmapTab = () => {
                         <h2 className="text-3xl font-bold text-gray-800 mb-2">AI 맞춤 학습 로드맵</h2>
                         <p className="text-gray-600">백엔드 개발자로 성장하기 위한 단계별 학습 경로</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#FBBAB7] to-[#F49795] rounded-full">
-                            <Star className="w-5 h-5 text-white" />
-                            <span className="text-white font-bold">목표 달성률 72%</span>
-                        </div>
-                    </div>
                 </div>
 
                 {/* 범례 */}

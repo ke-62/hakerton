@@ -3,7 +3,7 @@ import RadarChart from './RadarChart';
 import GapList from './GapList';
 import { Search } from 'lucide-react';
 
-// 직업별 상세 정보
+// 직업별 상세 정보 (fallback용)
 const getJobInfo = (jobName) => {
   const jobData = {
     '백엔드개발자': {
@@ -75,7 +75,7 @@ const getJobInfo = (jobName) => {
 
 const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showResult, setShowResult] = useState(true); // 로그인 시 바로 결과 표시
+  const [showResult, setShowResult] = useState(true);
   const [showJobDetailModal, setShowJobDetailModal] = useState(false);
   const [jobDetail, setJobDetail] = useState(null);
   const [isLoadingJobDetail, setIsLoadingJobDetail] = useState(false);
@@ -94,30 +94,49 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
 
       try {
         const token = localStorage.getItem('jwtToken');
-        const response = await fetch('http://172.19.31.67:3000/users/profile/desired-job/details', {
+        
+        if (!token) {
+          console.log('토큰이 없습니다. 로그인이 필요합니다.');
+          setJobDetail(null);
+          setIsLoadingJobDetail(false);
+          return;
+        }
+
+        const response = await fetch('http://172.16.72.219:3000/users/profile/desired-job/details/all', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          }
+          },
+          credentials: 'include'
         });
 
         if (!response.ok) {
-          throw new Error('백엔드 서버에 연결할 수 없습니다.');
+          if (response.status === 401) {
+            throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+          }
+          throw new Error(`서버 오류: ${response.status}`);
         }
 
         const data = await response.json();
-        if (data.isSuccess && data.result) {
+        console.log('백엔드 응답 데이터 전체:', data);
+        console.log('jobDetail 구조:', data.result?.jobDetail);
+
+        if (data.isSuccess && data.result && data.result.jobDetail) {
+          console.log('jobDetail 설정 전:', data.result.jobDetail);
           setJobDetail(data.result.jobDetail);
+          console.log('jobDetail 설정 완료');
         } else {
           throw new Error(data.message || '직업 상세 정보를 불러오는데 실패했습니다.');
         }
       } catch (error) {
         console.error('Error fetching job details:', error);
-        // 에러 발생 시 fallback으로 기존 getJobInfo 사용 (에러 메시지는 저장하지 않음)
-        // 이렇게 하면 백엔드 없이도 기본 데이터로 작동
+        console.error('API URL:', 'http://172.16.72.219:3000/users/profile/desired-job/details/all');
+        console.error('Token exists:', !!localStorage.getItem('jwtToken'));
+        
+        // 에러 발생 시 fallback으로 기존 getJobInfo 사용
         setJobDetail(null);
-        setJobDetailError(null); // 에러 메시지를 표시하지 않고 조용히 fallback
+        setJobDetailError(null); // 에러를 조용히 처리하고 fallback 사용
       } finally {
         setIsLoadingJobDetail(false);
       }
@@ -130,14 +149,15 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
   const getJobInfoDisplay = () => {
     if (jobDetail && jobDetail.details) {
       const details = jobDetail.details;
+      
       return {
-        summary: details['요약']?.content || details['요약']?.dtlInfo || '',
-        tasks: details['하는일']?.content || details['하는일']?.dtlInfo || '',
-        education: details['교육자격훈련']?.content || details['교육자격훈련']?.dtlInfo || '',
-        outlook: details['임금직업만족도전망']?.content || details['임금직업만족도전망']?.dtlInfo || '',
-        skills: details['능력지식환경']?.content || details['능력지식환경']?.dtlInfo || '',
-        personality: details['성격흥미가치관']?.content || details['성격흥미가치관']?.dtlInfo || '',
-        activities: details['업무활동']?.content || details['업무활동']?.dtlInfo || ''
+        summary: details['요약']?.jobSum || '',
+        tasks: details['하는일']?.execJob || '',
+        education: details['교육자격훈련']?.technKnow || '',
+        outlook: details['임금직업만족도전망']?.jobProspect || '',
+        skills: details['능력지식환경']?.jobSum || '',
+        personality: details['성격흥미가치관']?.jobSum || '',
+        activities: details['업무활동']?.execJob || ''
       };
     }
     // Fallback to hardcoded data
@@ -146,7 +166,6 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
 
   const handleStartAnalysis = () => {
     setIsAnalyzing(true);
-    // 1.5초 후 분석 결과 표시 (로딩 연출)
     setTimeout(() => {
       setIsAnalyzing(false);
       setShowResult(true);
@@ -175,6 +194,8 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
     );
   }
 
+  const jobInfo = getJobInfoDisplay();
+
   return (
     <div className="grid grid-cols-2 gap-6 animate-in fade-in duration-500">
       {/* 육각형 레이더 차트 */}
@@ -195,7 +216,7 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
               </button>
             </div>
             <p className="text-base text-gray-700 mt-3 leading-relaxed">
-              {isLoadingJobDetail ? '로딩 중...' : getJobInfoDisplay().summary}
+              {isLoadingJobDetail ? '로딩 중...' : jobInfo.summary}
             </p>
           </div>
         )}
@@ -269,37 +290,37 @@ const GapAnalysisTab = ({ gapAnalysis, targetJob }) => {
                   <>
                     <div className="bg-gray-50 rounded-xl p-6">
                       <p className="font-bold text-gray-800 mb-3 text-xl">요약</p>
-                      <p className="text-lg text-gray-700 leading-relaxed">{getJobInfoDisplay().summary}</p>
+                      <p className="text-lg text-gray-700 leading-relaxed">{jobInfo.summary}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-xl p-6">
                       <p className="font-bold text-gray-800 mb-3 text-xl">하는 일</p>
-                      <p className="text-lg text-gray-700 leading-relaxed">{getJobInfoDisplay().tasks}</p>
+                      <p className="text-lg text-gray-700 leading-relaxed">{jobInfo.tasks}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-xl p-6">
                       <p className="font-bold text-gray-800 mb-3 text-xl">교육/자격/훈련</p>
-                      <p className="text-lg text-gray-700 leading-relaxed">{getJobInfoDisplay().education}</p>
+                      <p className="text-lg text-gray-700 leading-relaxed">{jobInfo.education}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-xl p-6">
                       <p className="font-bold text-gray-800 mb-3 text-xl">임금/직업만족도/전망</p>
-                      <p className="text-lg text-gray-700 leading-relaxed">{getJobInfoDisplay().outlook}</p>
+                      <p className="text-lg text-gray-700 leading-relaxed">{jobInfo.outlook}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-xl p-6">
                       <p className="font-bold text-gray-800 mb-3 text-xl">능력/지식/환경</p>
-                      <p className="text-lg text-gray-700 leading-relaxed">{getJobInfoDisplay().skills}</p>
+                      <p className="text-lg text-gray-700 leading-relaxed">{jobInfo.skills}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-xl p-6">
                       <p className="font-bold text-gray-800 mb-3 text-xl">성격/흥미/가치관</p>
-                      <p className="text-lg text-gray-700 leading-relaxed">{getJobInfoDisplay().personality}</p>
+                      <p className="text-lg text-gray-700 leading-relaxed">{jobInfo.personality}</p>
                     </div>
                     
                     <div className="bg-gray-50 rounded-xl p-6">
                       <p className="font-bold text-gray-800 mb-3 text-xl">업무활동</p>
-                      <p className="text-lg text-gray-700 leading-relaxed">{getJobInfoDisplay().activities}</p>
+                      <p className="text-lg text-gray-700 leading-relaxed">{jobInfo.activities}</p>
                     </div>
                   </>
                 )}

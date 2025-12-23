@@ -15,7 +15,7 @@ const JobSelectorModal = ({ onClose, onSelectJob }) => {
                 setIsLoading(true);
                 console.log('직업 목록 조회 시작...');
                 
-                const response = await fetch('http://172.19.31.67:3000/career/jobs', {
+                const response = await fetch('http://172.16.72.219:3000/career/jobs', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ const JobSelectorModal = ({ onClose, onSelectJob }) => {
                 return;
             }
             
-            const response = await fetch('http://172.19.31.67:3000/users/profile/desired-job', {
+            const response = await fetch('http://172.16.72.219:3000/users/profile/desired-job', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

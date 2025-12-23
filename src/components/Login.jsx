@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { User, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { User, Lock, ArrowRight } from 'lucide-react';
+import logo from '../assets/Logo_transparent.png';
 
 const Login = ({ onLogin }) => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -41,7 +42,7 @@ const Login = ({ onLogin }) => {
       console.log('로그인 시도:', { userId: formData.userId });
 
       // 로그인 API 호출
-      const response = await fetch('http://172.19.31.67:3000/auth/login', {
+      const response = await fetch('http://172.16.72.219:3000/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,14 +64,17 @@ const Login = ({ onLogin }) => {
 
       if (data.isSuccess) {
         // 로그인 성공 - JWT 토큰을 localStorage에 저장
-        const token = data.result?.token || data.token || data.result?.accessToken || data.accessToken;
+        console.log('전체 응답 데이터:', JSON.stringify(data, null, 2));
+        const token = data.result?.token || data.token || data.result?.accessToken || data.accessToken || data.result?.jwtToken;
         console.log('받은 토큰:', token ? '✅ 존재' : '❌ 없음');
+        console.log('토큰 값:', token);
         
         if (token) {
           localStorage.setItem('jwtToken', token);
-          console.log('토큰 저장 완료');
+          console.log('토큰 저장 완료:', token.substring(0, 20) + '...');
         } else {
           console.error('⚠️ 백엔드 응답에 토큰이 없습니다!');
+          console.error('응답 구조 확인:', data);
         }
         
         localStorage.setItem('userName', data.result.name);
@@ -100,18 +104,18 @@ const Login = ({ onLogin }) => {
       </div>
 
       {/* 메인 컨테이너 */}
-      <div className="relative z-10 w-full max-w-6xl flex items-center gap-12">
+      <div className="relative z-10 w-full max-w-6xl flex items-start gap-12 pt-4">
         {/* 왼쪽: 브랜딩 영역 */}
         <div className="flex-1 hidden lg:block">
           <div className="space-y-8">
             {/* 로고 */}
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-2xl flex items-center justify-center shadow-2xl shadow-[#FBBAB7]/50 rotate-6 hover:rotate-0 transition-transform duration-300">
-                <Sparkles className="w-10 h-10 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold text-[#EA7274]">re_</h1>
-                <p className="text-sm text-gray-500 mt-1">살아있는 진로 로드맵</p>
+            <div className="flex items-center justify-center">
+              <div className="w-40 h-40 flex items-center justify-center">
+                <img 
+                  src={logo} 
+                  alt="INDEX Logo" 
+                  className="w-full h-auto object-contain" 
+                />
               </div>
             </div>
 
@@ -131,51 +135,21 @@ const Login = ({ onLogin }) => {
               </p>
             </div>
 
-            {/* 이미지 갤러리 */}
-            <div className="grid grid-cols-3 gap-4 mt-12">
-              <div className="aspect-square bg-gradient-to-br from-[#FBBAB7]/30 to-[#FBBAB7]/20 rounded-2xl overflow-hidden border border-[#FBBAB7]/30">
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-5xl">📊</div>
-                </div>
-              </div>
-              <div className="aspect-square bg-gradient-to-br from-[#F49795]/30 to-[#F49795]/20 rounded-2xl overflow-hidden border border-[#F49795]/30">
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-5xl">🎯</div>
-                </div>
-              </div>
-              <div className="aspect-square bg-gradient-to-br from-[#EA7274]/30 to-[#EA7274]/20 rounded-2xl overflow-hidden border border-[#EA7274]/30">
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-5xl">🚀</div>
-                </div>
-              </div>
-            </div>
-
-            {/* 통계 */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-[#FBBAB7]/30">
-              <div>
-                <div className="text-3xl font-bold text-[#EA7274]">2,847</div>
-                <div className="text-sm text-gray-500 mt-1">성공한 선배들</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-[#EA7274]">850+</div>
-                <div className="text-sm text-gray-500 mt-1">실시간 채용공고</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-[#EA7274]">95%</div>
-                <div className="text-sm text-gray-500 mt-1">목표 달성률</div>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* 오른쪽: 로그인 폼 */}
-        <div className="flex-1 max-w-md">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-[#FBBAB7]/20 p-10 border border-[#FBBAB7]/30">
+        <div className="flex-1 max-w-xl">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-[#FBBAB7]/20 p-12 border border-[#FBBAB7]/30">
             {/* 폼 헤더 */}
             <div className="text-center mb-8">
               <div className="inline-block mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#FBBAB7] to-[#F49795] rounded-2xl flex items-center justify-center shadow-lg shadow-[#FBBAB7]/50">
-                  <User className="w-8 h-8 text-white" />
+                <div className="w-20 h-20 flex items-center justify-center">
+                  <img 
+                    src={logo} 
+                    alt="INDEX Logo" 
+                    className="h-16 w-auto object-contain" 
+                  />
                 </div>
               </div>
               <h3 className="text-3xl font-bold text-gray-800 mb-2">
@@ -229,18 +203,6 @@ const Login = ({ onLogin }) => {
                 />
               </div>
 
-              {!isSignUp && (
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 accent-[#EA7274]" />
-                    <span className="text-gray-600">로그인 유지</span>
-                  </label>
-                  <button type="button" className="text-[#EA7274] hover:text-[#d85d5f] font-medium">
-                    비밀번호 찾기
-                  </button>
-                </div>
-              )}
-
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-[#FBBAB7] to-[#F49795] hover:from-[#F49795] hover:to-[#EA7274] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#FBBAB7]/50 flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02]"
@@ -249,29 +211,16 @@ const Login = ({ onLogin }) => {
                 <ArrowRight className="w-5 h-5" />
               </button>
             </form>
-
-            <div className="text-center mt-8 text-sm">
-              <span className="text-gray-600">
-                {isSignUp ? '이미 계정이 있으신가요?' : '아직 계정이 없으신가요?'}
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="ml-2 text-[#EA7274] hover:text-[#d85d5f] font-bold"
-              >
-                {isSignUp ? '로그인' : '회원가입'}
-              </button>
-            </div>
           </div>
 
           {/* 푸터 */}
           <div className="text-center mt-6 text-sm text-gray-500">
-            <p>© 2024 살아있는 진로 로드맵. All rights reserved.</p>
+            <p>© 2025 INDEX. All rights reserved.</p>
           </div>
         </div>
-      </div >
+      </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes blob {
           0% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(30px, -50px) scale(1.1); }
@@ -288,7 +237,7 @@ const Login = ({ onLogin }) => {
           animation-delay: 4s;
         }
       `}</style>
-    </div >
+    </div>
   );
 };
 
