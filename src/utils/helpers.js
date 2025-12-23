@@ -1,9 +1,9 @@
 // 카테고리별 그라데이션 색상 반환
 export const getCategoryColor = (category) => {
   const colors = {
-    foundation: 'from-red-400 to-rose-500',
-    development: 'from-rose-500 to-pink-600',
-    advanced: 'from-pink-500 to-red-600'
+    foundation: 'from-[#FBBAB7] to-[#F49795]',
+    development: 'from-[#F49795] to-[#EA7274]',
+    advanced: 'from-[#EA7274] to-[#d85d5f]'
   };
   return colors[category] || 'from-gray-400 to-gray-600';
 };
@@ -28,7 +28,7 @@ export const formatDeadline = (dateString) => {
   const today = new Date();
   const diffTime = date - today;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays < 0) return '마감';
   if (diffDays === 0) return '오늘 마감';
   if (diffDays === 1) return '내일 마감';
