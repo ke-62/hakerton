@@ -23,14 +23,14 @@ const Login = ({ onLogin }) => {
     }
 
     // ⚠️ 개발 중 임시 로그인 - 실제 배포 시 아래 주석 해제하고 이 부분 삭제
-    console.log('임시 로그인:', { userId: formData.userId });
-    alert(`${formData.userId}님, 환영합니다! (개발용 임시 로그인)`);
-    localStorage.setItem('userName', formData.userId);
-    localStorage.setItem('studentId', formData.userId);
-    onLogin();
-    return;
+    // console.log('임시 로그인:', { userId: formData.userId });
+    // alert(`${formData.userId}님, 환영합니다! (개발용 임시 로그인)`);
+    // localStorage.setItem('userName', formData.userId);
+    // localStorage.setItem('studentId', formData.userId);
+    // onLogin();
+    // return;
 
-    /* ⬇️ 실제 배포 시 주석 해제
+    // ⬇️ 실제 배포 시 주석 해제
     try {
       if (isSignUp) {
         // 회원가입 기능은 추후 구현
@@ -46,7 +46,6 @@ const Login = ({ onLogin }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // 쿠키를 받기 위해 필요
         body: JSON.stringify({
           userId: formData.userId,
           password: formData.password
@@ -54,15 +53,30 @@ const Login = ({ onLogin }) => {
       });
 
       console.log('응답 상태:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: 서버 응답 오류`);
+      }
+      
       const data = await response.json();
       console.log('응답 데이터:', data);
 
       if (data.isSuccess) {
-        // 로그인 성공
-        alert(`${data.result.name}님, 환영합니다!`);
-        // 사용자 정보를 localStorage에 저장 (선택사항)
+        // 로그인 성공 - JWT 토큰을 localStorage에 저장
+        const token = data.result?.token || data.token || data.result?.accessToken || data.accessToken;
+        console.log('받은 토큰:', token ? '✅ 존재' : '❌ 없음');
+        
+        if (token) {
+          localStorage.setItem('jwtToken', token);
+          console.log('토큰 저장 완료');
+        } else {
+          console.error('⚠️ 백엔드 응답에 토큰이 없습니다!');
+        }
+        
         localStorage.setItem('userName', data.result.name);
         localStorage.setItem('studentId', data.result.studentId);
+        
+        alert(`${data.result.name}님, 환영합니다!`);
         onLogin();
       } else {
         // 로그인 실패
@@ -72,9 +86,8 @@ const Login = ({ onLogin }) => {
       console.error('로그인 에러 상세:', error);
       console.error('에러 타입:', error.name);
       console.error('에러 메시지:', error.message);
-      alert(`서버와 연결할 수 없습니다.\n\n에러: ${error.message}\n\n개발자 도구 콘솔을 확인해주세요.`);
+      alert(`서버와 연결할 수 없습니다.\n\n에러: ${error.message}`);
     }
-    ⬆️ 실제 배포 시 주석 해제 */
   };
 
   return (

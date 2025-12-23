@@ -5,7 +5,7 @@ const Navigation = ({ activeTab, setActiveTab }) => {
   const tabs = [
     { id: 'gap', label: 'Gap Analysis', icon: BarChart3 },
     { id: 'roadmap', label: '학습 로드맵', icon: Map },
-    { id: 'jobs', label: '실시간 채용', icon: Briefcase },
+    { id: 'jobs', label: '관련 직업', icon: Briefcase },
     { id: 'community', label: '커뮤니티', icon: Users }
   ];
 

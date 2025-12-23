@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, LogOut, User } from 'lucide-react';
 
-const Header = ({ targetJob = '백엔드 개발자', matchRate = 72, onLogout, onOpenMyPage }) => {
+const Header = ({ targetJob = '미정', matchRate = 72, onLogout, onOpenMyPage, onOpenJobSelector }) => {
   return (
     <header className="border-b border-[#FBBAB7]/30 bg-white/90 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -19,10 +19,18 @@ const Header = ({ targetJob = '백엔드 개발자', matchRate = 72, onLogout, o
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="text-right">
+            <button
+              onClick={onOpenJobSelector}
+              className="group text-right hover:bg-[#FFF5F5] px-4 py-2 rounded-xl transition-all"
+            >
               <p className="text-xs text-gray-400">목표 직무</p>
-              <p className="font-semibold text-gray-700">{targetJob}</p>
-            </div>
+              <p className="font-semibold text-gray-700 group-hover:text-[#EA7274] transition-colors flex items-center gap-1">
+                {targetJob}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </p>
+            </button>
             <div className="w-16 h-16 bg-gradient-to-br from-[#FFF5F5] to-[#FFE8E8] rounded-2xl border-2 border-[#FBBAB7] flex items-center justify-center shadow-sm">
               <span className="text-xl font-bold text-[#EA7274]">{matchRate}%</span>
             </div>

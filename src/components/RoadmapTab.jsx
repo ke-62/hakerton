@@ -11,7 +11,7 @@ const RoadmapTab = () => {
                 name: '1학기',
                 period: '2024.03 - 2024.06',
                 priority: 'TBC',
-                color: 'from-blue-400 to-blue-500',
+                color: 'from-[#FBBAB7] to-[#F49795]',
                 courses: [
                     { name: '데이터베이스 고급', type: '필수', importance: 'HIGH' },
                     { name: '시스템 설계', type: '추천', importance: 'HIGH' }
@@ -22,7 +22,7 @@ const RoadmapTab = () => {
                 name: '여름학기',
                 period: '2024.07 - 2024.08',
                 priority: 'LOW RISK',
-                color: 'from-green-400 to-green-500',
+                color: 'from-[#F49795] to-[#EA7274]',
                 courses: [
                     { name: '인턴십 준비', type: '추천', importance: 'MEDIUM' },
                     { name: '프로젝트 심화', type: '선택', importance: 'MEDIUM' }
@@ -33,7 +33,7 @@ const RoadmapTab = () => {
                 name: '2학기',
                 period: '2024.09 - 2024.12',
                 priority: 'HIGH RISK',
-                color: 'from-orange-400 to-orange-500',
+                color: 'from-[#EA7274] to-[#d85d5f]',
                 courses: [
                     { name: '클라우드 아키텍처', type: '필수', importance: 'HIGH' },
                     { name: 'MSA 설계', type: '필수', importance: 'HIGH' },
@@ -45,7 +45,7 @@ const RoadmapTab = () => {
                 name: '겨울학기',
                 period: '2025.01 - 2025.02',
                 priority: 'BAU',
-                color: 'from-gray-600 to-gray-700',
+                color: 'from-gray-400 to-gray-500',
                 courses: [
                     { name: '취업 준비', type: '필수', importance: 'HIGH' },
                     { name: '포트폴리오 완성', type: '필수', importance: 'HIGH' }
@@ -84,14 +84,14 @@ const RoadmapTab = () => {
     };
 
     const priorityColors = {
-        'TBC': 'bg-blue-500',
-        'LOW RISK': 'bg-green-500',
-        'HIGH RISK': 'bg-orange-500',
-        'BAU': 'bg-gray-600'
+        'TBC': 'bg-[#FBBAB7]',
+        'LOW RISK': 'bg-[#F49795]',
+        'HIGH RISK': 'bg-[#EA7274]',
+        'BAU': 'bg-gray-500'
     };
 
     const importanceColors = {
-        'HIGH': 'text-red-600 bg-red-50 border-red-200',
+        'HIGH': 'text-[#EA7274] bg-red-50 border-[#EA7274]/30',
         'MEDIUM': 'text-amber-600 bg-amber-50 border-amber-200',
         'LOW': 'text-green-600 bg-green-50 border-green-200'
     };
@@ -118,19 +118,19 @@ const RoadmapTab = () => {
                     <span className="text-sm font-medium text-gray-600">우선순위:</span>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#FBBAB7]"></div>
                             <span className="text-sm text-gray-700">계획 단계</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#F49795]"></div>
                             <span className="text-sm text-gray-700">낮은 난이도</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#EA7274]"></div>
                             <span className="text-sm text-gray-700">높은 난이도</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-gray-600"></div>
+                            <div className="w-3 h-3 rounded-full bg-gray-500"></div>
                             <span className="text-sm text-gray-700">일반 유지</span>
                         </div>
                     </div>
@@ -225,10 +225,10 @@ const RoadmapTab = () => {
             </div>
 
             {/* AI 추천 섹션 */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl border border-amber-200 p-8">
+            <div className="bg-gradient-to-br from-[#FFF5F5] to-[#FFE8E8] rounded-3xl border border-[#FBBAB7] p-8">
                 <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                        <Target className="w-6 h-6 text-amber-600" />
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#FBBAB7] to-[#F49795] rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <Target className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
                         <h3 className="font-bold text-gray-800 text-xl mb-3">AI 분석 결과</h3>

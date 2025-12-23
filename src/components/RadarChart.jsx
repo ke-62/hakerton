@@ -92,7 +92,7 @@ const RadarChart = ({ gapAnalysis }) => {
 
         {/* 레이블 - 위치 조정 및 배경 추가 */}
         {labels.map((label, idx) => {
-          const [x, y] = getPoint(135, idx, 160).split(',');
+          const [x, y] = getPoint(110, idx, 140).split(',');
           const angle = angleStep * idx - Math.PI / 2;
 
           // 레이블의 앵커 포인트 계산 (중앙에서 먼 쪽으로)
@@ -104,23 +104,23 @@ const RadarChart = ({ gapAnalysis }) => {
             <g key={idx}>
               {/* 배경 박스 */}
               <rect
-                x={textAnchor === 'start' ? x + 2 : textAnchor === 'end' ? x - 82 : x - 40}
-                y={y - 12}
-                width="80"
-                height="24"
+                x={textAnchor === 'start' ? x + 2 : textAnchor === 'end' ? x - 95 : x - 47}
+                y={y - 14}
+                width="95"
+                height="28"
                 fill="white"
                 opacity="0.95"
                 rx="4"
               />
               {/* 텍스트 */}
               <text
-                x={textAnchor === 'start' ? x + 42 : textAnchor === 'end' ? x - 42 : x}
+                x={textAnchor === 'start' ? x + 49 : textAnchor === 'end' ? x - 47 : x}
                 y={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill="#374151"
-                fontSize="13"
-                fontWeight="600"
+                fontSize="16"
+                fontWeight="700"
               >
                 {label}
               </text>
